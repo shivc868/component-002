@@ -157,10 +157,16 @@ function renderDesktop() {
   // Title arc: all names live inside one "ring" element whose origin is the
   // circle's centre. Every character is its own span, placed on the circle
   // by buildArc(); scrolling then only rotates the ring (one transform).
+  // The ring sits in a clipped wrapper that fades the text out toward the
+  // left/right screen edges (see .project-info__arc-mask).
+  const arcMask = document.createElement("div");
+  arcMask.className = "project-info__arc-mask";
+  arc.appendChild(arcMask);
   const ring = document.createElement("div");
   ring.className = "project-info__ring";
-  arc.appendChild(ring);
+  arcMask.appendChild(ring);
 
+  const SVG_NS = "http://www.w3.org/2000/svg";
   const titleEls = slideData.map((project) => {
     const link = document.createElement("a");
     link.className = "project-info__title";
@@ -175,6 +181,16 @@ function renderDesktop() {
       span.textContent = ch === " " ? " " : ch;
       link.appendChild(span);
     }
+    // One continuous hover underline for the whole name: an SVG arc that
+    // follows the circle's curvature (layoutArc writes its path). pathLength
+    // is normalised to 1 so CSS can draw it in via stroke-dashoffset.
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "project-info__underline");
+    svg.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("pathLength", "1");
+    svg.appendChild(path);
+    link.appendChild(svg);
     ring.appendChild(link);
     return link;
   });
@@ -226,19 +242,31 @@ function renderDesktop() {
      computed once in buildArc(), stay valid. */
   const slotAngle = (Math.PI * 2) / slideData.length;
   let arcRadiusEm = 0; // circle radius in em of the title font
-  let charAngles = []; // per title: [{ span, theta }]
+  // Per title: { path, theta (name centre), halfAngle, chars: [{span, theta}] }
+  let titleLayouts = [];
 
   // Convert the em-space layout to pixels: place the ring's origin (the
   // circle centre) radius-px below the arc's top edge, then put every char
   // on the circle — rotate() tilts it tangentially, translateY(-r) pushes it
   // out to the rim, translateX(-50%) centres its box on that point.
+  // The underline is an arc of a slightly smaller circle sitting just under
+  // the glyphs (char boxes are 1em tall, the line 0.06em above their bottom).
   const layoutArc = () => {
     const fontSize = parseFloat(getComputedStyle(arc).fontSize);
     const radius = arcRadiusEm * fontSize;
+    const lineRadius = radius - 0.94 * fontSize;
     ring.style.top = `${radius}px`;
-    for (const chars of charAngles)
-      for (const { span, theta } of chars)
-        span.style.transform = `rotate(${theta}rad) translateY(${-radius}px) translateX(-50%)`;
+    for (const { path, theta, halfAngle, chars } of titleLayouts) {
+      for (const { span, theta: charTheta } of chars)
+        span.style.transform = `rotate(${charTheta}rad) translateY(${-radius}px) translateX(-50%)`;
+      // Circle-centre coordinates of an angle on the underline circle.
+      const point = (a) =>
+        `${(lineRadius * Math.sin(a)).toFixed(2)} ${(-lineRadius * Math.cos(a)).toFixed(2)}`;
+      path.setAttribute(
+        "d",
+        `M ${point(theta - halfAngle)} A ${lineRadius} ${lineRadius} 0 0 1 ${point(theta + halfAngle)}`,
+      );
+    }
   };
 
   const buildArc = () => {
@@ -252,7 +280,10 @@ function renderDesktop() {
       const left = link.getBoundingClientRect().left;
       return {
         width: link.getBoundingClientRect().width / fontSize,
-        chars: Array.from(link.children).map((span) => {
+        // Chars only — the link also contains the underline <svg>.
+        chars: Array.from(
+          link.querySelectorAll(".project-info__char"),
+        ).map((span) => {
           const r = span.getBoundingClientRect();
           return { span, center: (r.left - left + r.width / 2) / fontSize };
         }),
@@ -269,12 +300,15 @@ function renderDesktop() {
     // forward sends the active name right while the next rises in from the
     // left (and vice versa scrolling back). Within a name, each char sits at
     // its arc-length offset from the name's centre.
-    charAngles = measured.map(({ width, chars }, i) =>
-      chars.map(({ span, center }) => ({
+    titleLayouts = measured.map(({ width, chars }, i) => ({
+      path: titleEls[i].querySelector(".project-info__underline path"),
+      theta: -i * slotAngle,
+      halfAngle: width / 2 / arcRadiusEm,
+      chars: chars.map(({ span, center }) => ({
         span,
         theta: -i * slotAngle + (center - width / 2) / arcRadiusEm,
       })),
-    );
+    }));
     layoutArc();
   };
   buildArc();

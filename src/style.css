@@ -25,12 +25,15 @@ body {
 .project-info {
   position: absolute;
   top: 18%;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  width: 100%;
   z-index: 5000; /* slides use their right edge (px) as z-index */
   text-align: center;
   text-transform: uppercase;
-  cursor: default; /* not a drag surface — main.js swallows pointerdown here */
+  /* Full width (needed for the arc's edge fade) must not eat the slider's
+     drag events — empty areas pass through; the active title re-enables
+     hits and main.js still swallows pointerdown bubbling from it. */
+  pointer-events: none;
 }
 
 /* The mask shows exactly one line (height = 1lh via line-height em trick)
@@ -86,6 +89,35 @@ body {
   font-size: clamp(2.5rem, 6vw, 7rem);
   letter-spacing: -0.02em;
   line-height: 1;
+}
+
+/* Edge blend: fades the arc text into the black stage on both sides — only
+   the text, the slides underneath are untouched. The mask lives on this
+   clipped wrapper (not on the arc itself) so its geometry is exactly the
+   border box: masking the arc directly breaks in Chromium, which maps the
+   mask onto the composited ring layer's overflow bounds instead. 6em is
+   enough to contain how far the side names dip down the circle. */
+.project-info__arc-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 10%,
+    #000 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 10%,
+    #000 90%,
+    transparent 100%
+  );
 }
 
 /* 0×0 point at the circle's centre (main.js sets `top` to the radius, so
@@ -146,23 +178,31 @@ body {
   transform: none !important;
 }
 
-/* Underline draws in under the centred name on hover so users know it's a
-   link — per-char segments, so the line follows the curve. */
-.project-info__char::after {
-  content: "";
+/* One continuous underline for the whole name: an SVG arc following the
+   circle (main.js writes the path in ring coordinates). On hover of the
+   active name it strokes in from the left via the dash-offset trick —
+   pathLength is normalised to 1, so offset 1 = hidden, 0 = fully drawn. */
+.project-info__underline {
   position: absolute;
+  top: 0;
   left: 0;
-  bottom: 0.06em;
-  width: 100%;
-  height: 0.045em;
-  background: #fff;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 350ms ease-in-out;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
 }
 
-.project-info__title--active:hover .project-info__char::after {
-  transform: scaleX(1);
+.project-info__underline path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0.045em;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 350ms ease-in-out;
+}
+
+.project-info__title--active:hover .project-info__underline path {
+  stroke-dashoffset: 0;
 }
 
 /* ── Loader ──────────────────────────────────────────────────────────────
