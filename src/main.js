@@ -91,9 +91,6 @@ const slideData = [
 
 const config = {
   lerp: 0.075,
-  scrollSpeed: 6.5,
-  minSize: 0.07, // slide width at the screen edges (fraction of screen width)
-  growth: 0.18, // how fast slides grow toward the screen center
   aspect: 9 / 13, // width : height — smaller = taller slides
   baseline: 0.0,
   // Title arc: every character is placed on a big circle so the text itself
@@ -110,13 +107,16 @@ const config = {
   introArcFade: 1.4, // seconds for the title block's 0→1 fade-in
 };
 
-// Slides grow exponentially from the left edge to the screen center, then
-// shrink symmetrically toward the right edge. `halfSpan` is how many slide
-// units fit between an edge and the center (cumulative width = half screen).
-const halfSpan =
-  Math.log(1 + config.growth / (2 * config.minSize)) / config.growth;
-const span = 2 * halfSpan;
-const slideCount = Math.ceil(span) + 4;
+// Layout tiers — the exponential bell retuned per breakpoint:
+// minSize = slide width at the screen edges (fraction of screen width),
+// growth = how fast slides grow toward the screen center,
+// scrollSpeed = wheel/drag sensitivity.
+// Desktop shows a ~9-slide bell; mobile shows one full slide in the centre
+// (~70% of the screen) with half-cut neighbours peeking in on both sides.
+const layouts = {
+  desktop: { minSize: 0.07, growth: 0.18, scrollSpeed: 6.5 },
+  mobile: { minSize: 0.19, growth: 1.7, scrollSpeed: 2.5 },
+};
 
 /* ── Static markup lives in index.html as <template> elements ────────── */
 // Clone a template's content into a fresh DocumentFragment.
@@ -125,8 +125,15 @@ const cloneTemplate = (id) =>
 
 const app = document.querySelector("#app");
 
-/* ── DESKTOP (≥768px): perspective slider ───────────────────────────── */
-function renderDesktop() {
+/* ── Perspective slider (all breakpoints; layout tier passed in) ─────── */
+function renderSlider({ minSize, growth, scrollSpeed }) {
+  // Slides grow exponentially from the left edge to the screen center, then
+  // shrink symmetrically toward the right edge. `halfSpan` is how many slide
+  // units fit between an edge and the center (cumulative width = half screen).
+  const halfSpan = Math.log(1 + growth / (2 * minSize)) / growth;
+  const span = 2 * halfSpan;
+  const slideCount = Math.ceil(span) + 4;
+
   const slider = document.createElement("section");
   slider.id = "slider";
   slider.className = "slider";
@@ -320,14 +327,14 @@ function renderDesktop() {
   // Cumulative width (as a fraction of screen width) from the left edge up
   // to position s while unit widths grow as minSize * e^(growth * s).
   const rise = (s) =>
-    (config.minSize * (Math.exp(config.growth * s) - 1)) / config.growth;
+    (minSize * (Math.exp(growth * s) - 1)) / growth;
 
   // Edge x for stream position s: exponential rise to the center, mirrored
   // fall to the right edge, extended linearly (min width) off screen so the
   // recycle loops below still work.
   const edgeX = (s, width) => {
-    if (s <= 0) return width * config.minSize * s;
-    if (s >= span) return width * (1 + config.minSize * (s - span));
+    if (s <= 0) return width * minSize * s;
+    if (s >= span) return width * (1 + minSize * (s - span));
     return width * (s <= halfSpan ? rise(s) : 1 - rise(span - s));
   };
 
@@ -456,7 +463,7 @@ function renderDesktop() {
   const onWheel = (e) => {
     e.preventDefault();
     if (!introReady) return; // input waits for the loader to clear
-    scrollTarget += (e.deltaY + e.deltaX) * config.scrollSpeed * 0.0014;
+    scrollTarget += (e.deltaY + e.deltaX) * scrollSpeed * 0.0014;
     clearTimeout(wheelSnapTimer);
     wheelSnapTimer = setTimeout(snapToCenter, 180);
   };
@@ -472,7 +479,7 @@ function renderDesktop() {
   };
   const onPointerMove = (e) => {
     if (lastPointerX === null) return;
-    scrollTarget += (lastPointerX - e.clientX) * config.scrollSpeed * -0.005;
+    scrollTarget += (lastPointerX - e.clientX) * scrollSpeed * -0.005;
     lastPointerX = e.clientX;
   };
   const releasePointer = () => {
@@ -612,32 +619,9 @@ function renderDesktop() {
   };
 }
 
-/* ── MOBILE (<768px): simple swipeable cards ────────────────────────── */
-function renderMobile() {
-  const section = document.createElement("section");
-  section.className = "mobile-slider";
-
-  const row = document.createElement("div");
-  row.className = "card-row";
-
-  for (const slide of slideData) {
-    const card = cloneTemplate("tpl-card");
-    card.querySelector(".card").href = slide.link;
-    const img = card.querySelector("[data-img]");
-    img.src = slide.src;
-    img.alt = slide.alt;
-    card.querySelector("[data-caption]").textContent = slide.name;
-    card.querySelector("[data-duration]").textContent = slide.awards.length
-      ? `${slide.duration} · ${slide.awards.join(" · ")}`
-      : slide.duration;
-    row.appendChild(card);
-  }
-
-  section.appendChild(row);
-  app.replaceChildren(section);
-}
-
-/* ── Breakpoint switch (was React's useState + matchMedia) ──────────── */
+/* ── Breakpoint switch (was React's useState + matchMedia) ────────────
+   Same slider + arc + loader/intro everywhere; crossing the breakpoint
+   rebuilds with the other layout tier's bell curve. */
 const mq = window.matchMedia("(min-width: 768px)");
 let cleanup = null;
 
@@ -646,7 +630,7 @@ const build = () => {
     cleanup();
     cleanup = null;
   }
-  cleanup = mq.matches ? renderDesktop() : (renderMobile(), null);
+  cleanup = renderSlider(mq.matches ? layouts.desktop : layouts.mobile);
 };
 
 mq.addEventListener("change", build);

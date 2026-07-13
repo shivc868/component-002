@@ -244,14 +244,7 @@ body {
   }
 }
 
-/* Marker dot shared by the slide caption and the mobile card. */
-.marker-dot {
-  padding: 0.25rem;
-  background: #fff;
-  border-radius: 9999px;
-}
-
-/* ── Desktop (≥768px): perspective slider ───────────────────────────── */
+/* ── Perspective slider (all breakpoints) ───────────────────────────── */
 .slider {
   position: relative;
   width: 100%;
@@ -350,63 +343,3 @@ body {
   border-right: 2px solid #ffffff37;
 }
 
-/* ── Mobile (<768px): swipeable cards ───────────────────────────────── */
-.mobile-slider {
-  width: 100%;
-  min-height: 100svh;
-  overflow: hidden;
-}
-
-.card-row {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding: 0 1.5rem 3rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE / old Edge */
-}
-
-.card-row::-webkit-scrollbar {
-  display: none; /* Chrome / Safari */
-}
-
-.card {
-  width: 72vw;
-  flex-shrink: 0;
-  scroll-snap-align: start;
-  color: inherit;
-  text-decoration: none;
-}
-
-.card__media {
-  aspect-ratio: 1 / 1.25;
-  overflow: hidden;
-}
-
-.card__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.card__meta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.card__caption {
-  color: #fff;
-  font-size: 1rem;
-  margin: 0;
-}
-
-.card__duration {
-  margin: 0.25rem 0 0;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.875rem;
-  text-transform: uppercase;
-}
