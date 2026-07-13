@@ -15,22 +15,14 @@
          bits: image src/alt and captions). -->
 
     <!-- Active project info — centered above the slider (desktop layout).
-         Each mask hides a vertical ticker track (one line per project) that
-         main.js moves in lockstep with the slider scroll, so the text moves
-         exactly as fast as the images are dragged. -->
+         The title is an arc/fan of project names (one <a> per project) that
+         main.js positions along a curve each frame: the active name sits
+         dead-center, its neighbours fan out lower-left / lower-right, smaller
+         and faded. The duration below is still a masked vertical ticker moved
+         in lockstep with the slider scroll. -->
     <template id="tpl-project-info">
       <div class="project-info">
-        <a
-          data-link
-          href="#"
-          class="project-info__title-link"
-          target="_blank"
-          rel="noopener"
-        >
-          <div class="project-info__mask project-info__mask--name">
-            <div data-name-track class="project-info__track"></div>
-          </div>
-        </a>
+        <div data-arc class="project-info__arc"></div>
         <div class="project-info__mask project-info__mask--duration">
           <div data-duration-track class="project-info__track"></div>
         </div>
