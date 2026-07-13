@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>component-002</title>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- ── Static markup ──────────────────────────────────────────────
+         The layouts below are authored here in HTML. src/main.js clones
+         these <template> elements into #app (and only fills the dynamic
+         bits: image src/alt and captions). -->
+
+    <!-- Shared header / hero (used by both the desktop and mobile layouts) -->
+    <template id="tpl-header">
+      <div class="site-header">
+        <a href="#" class="site-header__logo">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="40" height="40" rx="8" fill="#fff" />
+            <path d="M12 28V12h4l4 8 4-8h4v16h-4v-8l-4 8-4-8v8h-4Z" fill="#000" />
+          </svg>
+        </a>
+        <ul class="site-nav">
+          <li class="site-nav__group">
+            <a href="#" class="site-nav__link">talents</a>
+            <a href="#" class="site-nav__link">PROJECTS</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="hero">
+        <h1 class="hero__title">
+          Perpetual <br /> Motion
+        </h1>
+        <p class="hero__subtitle">
+          Detroit - AI Production House in Paris, <br /> Crafting Culture for Luxury Brands.
+        </p>
+        <span class="hero__tags">
+          PRINT &amp; FILM. AI. 3D. CGI.
+        </span>
+      </div>
+    </template>
+
+    <!-- Desktop (≥768px): one perspective slide, repeated by main.js -->
+    <template id="tpl-slide">
+      <div class="slide">
+        <div class="slide__caption">
+          <span class="marker-dot"></span>
+          <p data-caption class="slide__caption-text"></p>
+        </div>
+        <img alt="GSAP draggable perspective image slider component for creative agency websites"
+          class="slide__image" />
+      </div>
+    </template>
+
+    <!-- Mobile (<768px): one swipeable card, repeated by main.js -->
+    <template id="tpl-card">
+      <div class="card">
+        <div class="card__media">
+          <img data-img class="card__image" />
+        </div>
+        <div class="card__meta">
+          <span class="marker-dot"></span>
+          <p data-caption class="card__caption"></p>
+        </div>
+      </div>
+    </template>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
