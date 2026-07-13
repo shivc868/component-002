@@ -94,7 +94,7 @@ const config = {
   scrollSpeed: 6.5,
   minSize: 0.07, // slide width at the screen edges (fraction of screen width)
   growth: 0.18, // how fast slides grow toward the screen center
-  aspect: 9 / 14, // width : height — smaller = taller slides
+  aspect: 9 / 13, // width : height — smaller = taller slides
   baseline: 0.0,
 };
 
@@ -228,6 +228,8 @@ function renderDesktop() {
       img.src = slideData[index].src;
       img.alt = slideData[index].alt;
     }
+    const caption = slide.querySelector("[data-caption]");
+    if (caption) caption.textContent = slideData[index].name;
   };
 
   /* Active project = the slide sitting on the screen's horizontal center.

@@ -141,8 +141,15 @@ body {
   position: absolute;
   bottom: 0;
   left: 0;
-  overflow: hidden;
+  overflow: visible; /* let the caption show above the image */
   will-change: transform, width, height;
+}
+
+/* Media wrapper clips the hover zoom to the image frame. */
+.slide__media {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .slide__image {
@@ -158,6 +165,31 @@ body {
 /* Hover zoom on every slide except the centred/active one. */
 .slide:not(.slide--active):hover .slide__image {
   transform: scale(1.02);
+}
+
+/* Project name sits just above the image; slides up + fades in on hover of
+   any slide except the centred/active one. */
+.slide__caption {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  padding: 0 0.75rem 0.5rem;
+  opacity: 0;
+  transform: translateY(1rem);
+  transition: all 300ms ease-in-out;
+  pointer-events: none;
+}
+
+.slide:not(.slide--active):hover .slide__caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.slide__caption-text {
+  margin: 0;
+  color: #fff;
+  font-size: 1rem;
+  white-space: nowrap;
 }
 
 /* Static corner frame marking the centred slot — small right-angle brackets

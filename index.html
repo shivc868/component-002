@@ -40,11 +40,16 @@
     <!-- Desktop (≥768px): one perspective slide, repeated by main.js -->
     <template id="tpl-slide">
       <div class="slide">
-        <img
-          alt="GSAP draggable perspective image slider component for creative agency websites"
-          class="slide__image"
-          draggable="false"
-        />
+        <div class="slide__caption">
+          <p data-caption class="slide__caption-text"></p>
+        </div>
+        <div class="slide__media">
+          <img
+            alt="GSAP draggable perspective image slider component for creative agency websites"
+            class="slide__image"
+            draggable="false"
+          />
+        </div>
       </div>
     </template>
 
