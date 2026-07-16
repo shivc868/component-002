@@ -9,17 +9,10 @@
   <body>
     <div id="app"></div>
 
-    <!-- ── Static markup ──────────────────────────────────────────────
-         The layouts below are authored here in HTML. src/main.js clones
-         these <template> elements into #app (and only fills the dynamic
-         bits: image src/alt and captions). -->
+    <!-- Static markup lives here as templates; main.js clones them into
+         #app and fills the dynamic bits (image src/alt, captions). -->
 
-    <!-- Active project info — centered above the slider (desktop layout).
-         The title is an arc/fan of project names (one <a> per project) that
-         main.js positions along a curve each frame: the active name sits
-         dead-center, its neighbours fan out lower-left / lower-right, smaller
-         and faded. The duration below is still a masked vertical ticker moved
-         in lockstep with the slider scroll. -->
+    <!-- active project info: title arc + duration ticker -->
     <template id="tpl-project-info">
       <div class="project-info">
         <div data-arc class="project-info__arc"></div>
@@ -29,18 +22,14 @@
       </div>
     </template>
 
-    <!-- One perspective slide (all breakpoints), repeated by main.js -->
+    <!-- one slide, repeated by main.js -->
     <template id="tpl-slide">
       <div class="slide">
         <div class="slide__caption">
           <p data-caption class="slide__caption-text"></p>
         </div>
         <div class="slide__media">
-          <img
-            alt="GSAP draggable perspective image slider component for creative agency websites"
-            class="slide__image"
-            draggable="false"
-          />
+          <img alt="" class="slide__image" draggable="false" />
         </div>
       </div>
     </template>

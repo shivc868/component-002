@@ -1,142 +1,220 @@
 import "./style.css";
 
-/* ── Data ───────────────────────────────────────────────────────────── */
-// Images live in /public so no import/bundling is needed.
-// name / duration / link / awards are placeholders — swap in the real data.
-// Award labels: SOTD (Site of the Day), SOTM (Site of the Month),
-// HM (Honorable Mention), DEV (Developer Award) — Awwwards;
-// WOTD (Website of the Day) — CSS Design Awards.
-const slideData = [
-  {
-    src: "/assets/slide-img-1.jpg",
-    name: "Detroit",
-    duration: "2021 — 2022",
-    link: "#",
-    awards: ["SOTD", "DEV"],
-    alt: "Detroit cityscape featured in the GSAP draggable perspective slider component",
-  },
-  {
-    src: "/assets/slide-img-2.jpg",
-    name: "Paris",
-    duration: "2022",
-    link: "#",
-    awards: ["HM"],
-    alt: "Paris architecture showcased in the GSAP draggable perspective slider component",
-  },
-  {
-    src: "/assets/slide-img-3.jpg",
-    name: "Monolith",
-    duration: "2022 — 2023",
-    link: "#",
-    awards: ["WOTD"],
-    alt: "Editorial showcase image in the interactive GSAP drag slider for creative agency websites",
-  },
-  {
-    src: "/assets/slide-img-4.jpg",
-    name: "Halo",
-    duration: "2023",
-    link: "#",
-    awards: ["HM"],
-    alt: "Full-bleed visual demonstrating the smooth GSAP perspective slider animation",
-  },
-  {
-    src: "/assets/slide-img-5.jpg",
-    name: "Vessel",
-    duration: "2023",
-    link: "#",
-    awards: ["SOTD"],
-    alt: "Award-style portfolio slide inside the draggable GSAP image carousel",
-  },
-  {
-    src: "/assets/slide-img-6.jpg",
-    name: "Verdure",
-    duration: "2023 — 2024",
-    link: "#",
-    awards: ["SOTM"],
-    alt: "Creative-direction showcase frame in the GSAP touch-enabled slider component",
-  },
-  {
-    src: "/assets/slide-img-7.jpg",
-    name: "Drapery",
-    duration: "2024",
-    link: "#",
-    awards: ["SOTD", "HM"],
-    alt: "Cinematic slider visual built with GSAP for premium agency and studio sites",
-  },
-  {
-    src: "/assets/slide-img-8.jpg",
-    name: "Cartography",
-    duration: "2024",
-    link: "#",
-    awards: ["WOTD"],
-    alt: "Interactive drag-to-explore slide from the GSAP perspective gallery snippet",
-  },
-  {
-    src: "/assets/slide-img-9.jpg",
-    name: "Stillness",
-    duration: "2024 — 2025",
-    link: "#",
-    awards: ["SOTM", "DEV"],
-    alt: "High-end editorial image animated by the GSAP horizontal drag slider",
-  },
-  {
-    src: "/assets/slide-img-10.jpg",
-    name: "Atlas",
-    duration: "2025",
-    link: "#",
-    awards: ["SOTD"],
-    alt: "Award-winning style showcase slide powered by the GSAP creative slider component",
-  },
+// Project slider: slides ride an exponential bell curve, the curved title
+// rotates on a circle in sync. Vanilla JS + rAF, no libraries.
+
+const rows = [
+  ["Detroit", "2021 — 2022", ["SOTD", "DEV"]],
+  ["Paris", "2022", ["HM"]],
+  ["Monolith", "2022 — 2023", ["WOTD"]],
+  ["Halo", "2023", ["HM"]],
+  ["Vessel", "2023", ["SOTD"]],
+  ["Verdure", "2023 — 2024", ["SOTM"]],
+  ["Drapery", "2024", ["SOTD", "HM"]],
+  ["Cartography", "2024", ["WOTD"]],
+  ["Stillness", "2024 — 2025", ["SOTM", "DEV"]],
+  ["Atlas", "2025", ["SOTD"]],
 ];
 
+const projects = rows.map(([name, duration, awards], i) => ({
+  name,
+  duration,
+  awards,
+  link: "#",
+  src: `/assets/slide-img-${i + 1}.jpg`,
+  alt: `${name} project cover`,
+}));
+
+/* ----- tuning ----- */
+
 const config = {
-  lerp: 0.075,
-  aspect: 9 / 13, // width : height — smaller = taller slides
-  baseline: 0.0,
-  // Title arc: every character is placed on a big circle so the text itself
-  // bends along a real curve; scrolling rotates the whole ring. The radius
-  // is derived from the longest name so neighbouring names never overlap.
-  arcGap: 1, // gap between neighbouring names (em of the title font)
-  arcSpan: 2.5, // how many names stay visible either side of centre
-  arcFadeFalloff: 0.5, // fade per unit of distance from centre
-  // Load intro: plays once the loader clears (all images cached) — the
-  // slides rise from the bottom edge (centre slide first, then outward to
-  // both sides) while the title block fades in.
-  introDuration: 1.6, // seconds for the full centre→edges rise wave
-  introRise: 0.5, // fraction of the wave each slide's own rise takes
-  introArcFade: 1.4, // seconds for the title block's 0→1 fade-in
+  lerp: 0.075, // scroll easing, lower = floatier
+  aspect: 9 / 14, // slide width : height, smaller = taller
+  baseline: 0, // lifts slides off the bottom edge (fraction of height)
+
+  // title arc
+  arcGap: 1, // em between neighbouring names on the circle
+  arcSpan: 2.5, // names kept visible either side of the centre
+  arcFadeFalloff: 0.5, // opacity drop per slot of distance from centre
+
+  // load intro
+  introDuration: 1.6, // rise wave, centre to edges (s)
+  introRise: 0.5, // each slide's own rise as a fraction of the wave
+  introArcFade: 1.4, // title block fade-in (s)
 };
 
-// Layout tiers — the exponential bell retuned per breakpoint:
-// minSize = slide width at the screen edges (fraction of screen width),
-// growth = how fast slides grow toward the screen center,
-// scrollSpeed = wheel/drag sensitivity.
-// Desktop shows a ~9-slide bell; mobile shows one full slide in the centre
-// (~70% of the screen) with half-cut neighbours peeking in on both sides.
+// bell + input feel; mobile = one full centre slide, half-cut neighbours
 const layouts = {
-  desktop: { minSize: 0.07, growth: 0.18, scrollSpeed: 6.5 },
-  mobile: { minSize: 0.19, growth: 1.7, scrollSpeed: 2.5 },
+  desktop: { minSize: 0.085, growth: 0.23, scrollSpeed: 6.5 },
+  mobile: { minSize: 0.21, growth: 1.7, scrollSpeed: 2.5 },
 };
 
-/* ── Static markup lives in index.html as <template> elements ────────── */
-// Clone a template's content into a fresh DocumentFragment.
+/* ----- helpers ----- */
+
+const el = (tag, className, parent) => {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (parent) parent.appendChild(node);
+  return node;
+};
+
+const wrap = (value, max) => ((value % max) + max) % max;
+
+// shortest signed distance around a ring of `max` items
+const wrapSigned = (value, max) => {
+  const w = wrap(value, max);
+  return w > max / 2 ? w - max : w;
+};
+
+const easeOutCubic = (x) => 1 - (1 - x) ** 3;
+
 const cloneTemplate = (id) =>
   document.getElementById(id).content.cloneNode(true);
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/* ----- project info: curved title + duration ticker ----- */
+
+// Every char sits on one big circle, so scrolling only rotates the ring.
+// update(pos) drives it all; pos = fractional index of the centred project.
+function createProjectInfo(info) {
+  // a drag must not start from over the text
+  info.addEventListener("pointerdown", (e) => e.stopPropagation());
+
+  const arc = info.querySelector("[data-arc]");
+  const track = info.querySelector("[data-duration-track]");
+
+  // clip wrapper fades the names out toward the screen edges (see css)
+  const clip = el("div", "project-info__arc-mask", arc);
+  const ring = el("div", "project-info__ring", clip);
+
+  const titles = projects.map((project) => {
+    const link = el("a", "project-info__title", ring);
+    link.href = project.link;
+    link.target = "_blank";
+    link.rel = "noopener";
+
+    const chars = [...project.name].map((ch) => {
+      const span = el("span", "project-info__char", link);
+      // nbsp, a normal space would collapse during the measure pass
+      span.textContent = ch === " " ? " " : ch;
+      return span;
+    });
+
+    // hover underline: svg arc, drawn in via stroke-dashoffset
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "project-info__underline");
+    svg.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("pathLength", "1");
+    svg.appendChild(path);
+    link.appendChild(svg);
+
+    return { link, path, chars };
+  });
+
+  // ticker lines, plus a clone of the first for a seamless wrap
+  for (const project of [...projects, projects[0]]) {
+    const line = el("div", "project-info__line", track);
+    el("span", null, line).textContent = project.duration;
+    for (const award of project.awards)
+      el("span", "project-info__award", line).textContent = award;
+  }
+
+  const slot = (Math.PI * 2) / projects.length;
+  let radiusEm = 0;
+  let lineHeight = 0;
+
+  // em -> px: rotate every char onto the rim, write the underline arcs
+  const layout = () => {
+    const fontSize = parseFloat(getComputedStyle(arc).fontSize);
+    const radius = radiusEm * fontSize;
+    const lineR = radius - 0.94 * fontSize;
+    const pt = (a) =>
+      `${(lineR * Math.sin(a)).toFixed(2)} ${(-lineR * Math.cos(a)).toFixed(2)}`;
+    ring.style.top = `${radius}px`;
+    for (const t of titles) {
+      t.chars.forEach((span, i) => {
+        span.style.transform = `rotate(${t.charThetas[i]}rad) translateY(${-radius}px) translateX(-50%)`;
+      });
+      t.path.setAttribute(
+        "d",
+        `M ${pt(t.theta - t.halfAngle)} A ${lineR} ${lineR} 0 0 1 ${pt(t.theta + t.halfAngle)}`,
+      );
+    }
+  };
+
+  // rescale after resize (font size is vw based)
+  const relayout = () => {
+    lineHeight = track.firstElementChild.getBoundingClientRect().height;
+    layout();
+  };
+
+  // measure chars in normal inline flow, in em so resizes keep the angles
+  const rebuild = () => {
+    if (!arc.isConnected) return; // fonts.ready can fire after a teardown
+
+    ring.classList.add("project-info__ring--measure");
+    const fontSize = parseFloat(getComputedStyle(arc).fontSize);
+    for (const t of titles) {
+      const box = t.link.getBoundingClientRect();
+      t.width = box.width / fontSize;
+      t.centers = t.chars.map((span) => {
+        const r = span.getBoundingClientRect();
+        return (r.left - box.left + r.width / 2) / fontSize;
+      });
+    }
+    ring.classList.remove("project-info__ring--measure");
+
+    // radius: longest name + gap fills one slot
+    const maxWidth = Math.max(...titles.map((t) => t.width));
+    radiusEm = ((maxWidth + config.arcGap) * projects.length) / (Math.PI * 2);
+
+    // names step left, so the next one always enters from the left
+    titles.forEach((t, i) => {
+      t.theta = -i * slot;
+      t.halfAngle = t.width / 2 / radiusEm;
+      t.charThetas = t.centers.map(
+        (c) => t.theta + (c - t.width / 2) / radiusEm,
+      );
+    });
+    relayout();
+  };
+
+  rebuild();
+  document.fonts?.ready.then(rebuild); // fallback font metrics skew kerning
+
+  // rotate the ring to pos, fade names by distance, sync the ticker
+  const update = (pos) => {
+    ring.style.transform = `rotate(${pos * slot}rad)`;
+    track.style.transform = `translateY(${-pos * lineHeight}px)`;
+
+    const active = wrap(Math.round(pos), projects.length);
+    titles.forEach((t, i) => {
+      const dist = Math.abs(wrapSigned(i - pos, projects.length));
+      t.link.style.opacity =
+        dist > config.arcSpan
+          ? "0"
+          : String(Math.max(0, 1 - dist * config.arcFadeFalloff));
+      t.link.classList.toggle("project-info__title--active", i === active);
+    });
+  };
+
+  return { update, relayout };
+}
+
+/* ----- slider ----- */
+
 const app = document.querySelector("#app");
 
-/* ── Perspective slider (all breakpoints; layout tier passed in) ─────── */
 function renderSlider({ minSize, growth, scrollSpeed }) {
-  // Slides grow exponentially from the left edge to the screen center, then
-  // shrink symmetrically toward the right edge. `halfSpan` is how many slide
-  // units fit between an edge and the center (cumulative width = half screen).
+  // halfSpan = slide units from a screen edge to the centre
   const halfSpan = Math.log(1 + growth / (2 * minSize)) / growth;
   const span = 2 * halfSpan;
   const slideCount = Math.ceil(span) + 4;
 
-  const slider = document.createElement("section");
+  const slider = el("section", "slider");
   slider.id = "slider";
-  slider.className = "slider";
   slider.appendChild(cloneTemplate("tpl-project-info"));
   for (let i = 0; i < slideCount; i++)
     slider.appendChild(cloneTemplate("tpl-slide"));
@@ -145,264 +223,52 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
   const slides = Array.from(slider.querySelectorAll(".slide"));
   const slideStreamIndex = slides.map((_, i) => i);
 
-  // A single static frame marking the centred slot. It stays put while
-  // images scroll through it — it does NOT follow individual slides.
-  const marker = document.createElement("div");
-  marker.className = "center-marker";
-  marker.style.opacity = "0"; // fades in with the centre slide's intro rise
-  slider.appendChild(marker);
-
   const info = slider.querySelector(".project-info");
+  const projectInfo = createProjectInfo(info);
 
-  // The title block is not a drag surface — swallow pointerdowns so the
-  // slider doesn't start a drag from over the text.
-  const stopInfoDrag = (e) => e.stopPropagation();
-  info.addEventListener("pointerdown", stopInfoDrag);
-  const arc = info.querySelector("[data-arc]");
-  const durationTrack = info.querySelector("[data-duration-track]");
+  // corner frame over the centre slot, images scroll through it
+  const marker = el("div", "center-marker", slider);
+  marker.style.opacity = "0"; // fades in during the intro
 
-  // Title arc: all names live inside one "ring" element whose origin is the
-  // circle's centre. Every character is its own span, placed on the circle
-  // by buildArc(); scrolling then only rotates the ring (one transform).
-  // The ring sits in a clipped wrapper that fades the text out toward the
-  // left/right screen edges (see .project-info__arc-mask).
-  const arcMask = document.createElement("div");
-  arcMask.className = "project-info__arc-mask";
-  arc.appendChild(arcMask);
-  const ring = document.createElement("div");
-  ring.className = "project-info__ring";
-  arcMask.appendChild(ring);
+  /* ----- bell geometry ----- */
 
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  const titleEls = slideData.map((project) => {
-    const link = document.createElement("a");
-    link.className = "project-info__title";
-    link.href = project.link;
-    link.target = "_blank";
-    link.rel = "noopener";
-    for (const ch of project.name) {
-      const span = document.createElement("span");
-      span.className = "project-info__char";
-      // The "space" below is a non-breaking space (U+00A0): a regular one
-      // would collapse during the inline measuring pass in buildArc().
-      span.textContent = ch === " " ? " " : ch;
-      link.appendChild(span);
-    }
-    // One continuous hover underline for the whole name: an SVG arc that
-    // follows the circle's curvature (layoutArc writes its path). pathLength
-    // is normalised to 1 so CSS can draw it in via stroke-dashoffset.
-    const svg = document.createElementNS(SVG_NS, "svg");
-    svg.setAttribute("class", "project-info__underline");
-    svg.setAttribute("aria-hidden", "true");
-    const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("pathLength", "1");
-    svg.appendChild(path);
-    link.appendChild(svg);
-    ring.appendChild(link);
-    return link;
-  });
+  // cumulative width (screen fraction) up to stream position s
+  const rise = (s) => (minSize * (Math.exp(growth * s) - 1)) / growth;
 
-  // Fill the duration ticker: one line per project, plus a clone of the first
-  // project at the end so the wrap from last back to first is seamless.
-  const fillTrack = (track, build) => {
-    for (const project of [...slideData, slideData[0]]) {
-      const line = document.createElement("div");
-      line.className = "project-info__line";
-      build(line, project);
-      track.appendChild(line);
-    }
-  };
-  fillTrack(durationTrack, (line, project) => {
-    const duration = document.createElement("span");
-    duration.textContent = project.duration;
-    line.appendChild(duration);
-    for (const award of project.awards) {
-      const chip = document.createElement("span");
-      chip.className = "project-info__award";
-      chip.textContent = award;
-      line.appendChild(chip);
-    }
-  });
-
-  // Line height drives the duration ticker offsets; remeasure when
-  // fonts/viewport change the computed sizes.
-  let durationLineH = 0;
-  const measureInfo = () => {
-    durationLineH =
-      durationTrack.firstElementChild.getBoundingClientRect().height;
-  };
-  measureInfo();
-
-  const wrap = (value, max) => ((value % max) + max) % max;
-
-  // Shortest signed distance on the ring of projects, in [-max/2, max/2].
-  const wrapSigned = (value, max) => {
-    const w = wrap(value, max);
-    return w > max / 2 ? w - max : w;
-  };
-
-  /* ── Title arc layout ──────────────────────────────────────────────────
-     The ten names close a full circle: each name owns a 360°/10 slot, so
-     rotating the ring by `pos * slotAngle` wraps seamlessly from the last
-     project back to the first. Characters are measured in em (font-size
-     independent), so a resize only rescales pixel values — the angles,
-     computed once in buildArc(), stay valid. */
-  const slotAngle = (Math.PI * 2) / slideData.length;
-  let arcRadiusEm = 0; // circle radius in em of the title font
-  // Per title: { path, theta (name centre), halfAngle, chars: [{span, theta}] }
-  let titleLayouts = [];
-
-  // Convert the em-space layout to pixels: place the ring's origin (the
-  // circle centre) radius-px below the arc's top edge, then put every char
-  // on the circle — rotate() tilts it tangentially, translateY(-r) pushes it
-  // out to the rim, translateX(-50%) centres its box on that point.
-  // The underline is an arc of a slightly smaller circle sitting just under
-  // the glyphs (char boxes are 1em tall, the line 0.06em above their bottom).
-  const layoutArc = () => {
-    const fontSize = parseFloat(getComputedStyle(arc).fontSize);
-    const radius = arcRadiusEm * fontSize;
-    const lineRadius = radius - 0.94 * fontSize;
-    ring.style.top = `${radius}px`;
-    for (const { path, theta, halfAngle, chars } of titleLayouts) {
-      for (const { span, theta: charTheta } of chars)
-        span.style.transform = `rotate(${charTheta}rad) translateY(${-radius}px) translateX(-50%)`;
-      // Circle-centre coordinates of an angle on the underline circle.
-      const point = (a) =>
-        `${(lineRadius * Math.sin(a)).toFixed(2)} ${(-lineRadius * Math.cos(a)).toFixed(2)}`;
-      path.setAttribute(
-        "d",
-        `M ${point(theta - halfAngle)} A ${lineRadius} ${lineRadius} 0 0 1 ${point(theta + halfAngle)}`,
-      );
-    }
-  };
-
-  const buildArc = () => {
-    if (!arc.isConnected) return; // fonts.ready may fire after a re-render
-
-    // Measure every char in normal inline flow (measure class kills the
-    // absolute positioning + transforms), in em so results survive resizes.
-    ring.classList.add("project-info__ring--measure");
-    const fontSize = parseFloat(getComputedStyle(arc).fontSize);
-    const measured = titleEls.map((link) => {
-      const left = link.getBoundingClientRect().left;
-      return {
-        width: link.getBoundingClientRect().width / fontSize,
-        // Chars only — the link also contains the underline <svg>.
-        chars: Array.from(
-          link.querySelectorAll(".project-info__char"),
-        ).map((span) => {
-          const r = span.getBoundingClientRect();
-          return { span, center: (r.left - left + r.width / 2) / fontSize };
-        }),
-      };
-    });
-    ring.classList.remove("project-info__ring--measure");
-
-    // Radius so the longest name + gap fits exactly in one slot's arc.
-    const maxWidth = Math.max(...measured.map((m) => m.width));
-    arcRadiusEm =
-      ((maxWidth + config.arcGap) * slideData.length) / (Math.PI * 2);
-
-    // Base angle -i * slotAngle steps names to the LEFT, so scrolling
-    // forward sends the active name right while the next rises in from the
-    // left (and vice versa scrolling back). Within a name, each char sits at
-    // its arc-length offset from the name's centre.
-    titleLayouts = measured.map(({ width, chars }, i) => ({
-      path: titleEls[i].querySelector(".project-info__underline path"),
-      theta: -i * slotAngle,
-      halfAngle: width / 2 / arcRadiusEm,
-      chars: chars.map(({ span, center }) => ({
-        span,
-        theta: -i * slotAngle + (center - width / 2) / arcRadiusEm,
-      })),
-    }));
-    layoutArc();
-  };
-  buildArc();
-
-  // The display font loads async — widths measured against the fallback
-  // font would bend the kerning out of shape, so re-measure once it's in.
-  document.fonts?.ready.then(buildArc);
-
-  // Cumulative width (as a fraction of screen width) from the left edge up
-  // to position s while unit widths grow as minSize * e^(growth * s).
-  const rise = (s) =>
-    (minSize * (Math.exp(growth * s) - 1)) / growth;
-
-  // Edge x for stream position s: exponential rise to the center, mirrored
-  // fall to the right edge, extended linearly (min width) off screen so the
-  // recycle loops below still work.
+  // left edge x of position s, mirrored past the centre
   const edgeX = (s, width) => {
     if (s <= 0) return width * minSize * s;
     if (s >= span) return width * (1 + minSize * (s - span));
     return width * (s <= halfSpan ? rise(s) : 1 - rise(span - s));
   };
 
-  // Size/place the centre marker to the exact-centre slide box (bottom
-  // anchored, like the slides). Static — only depends on viewport size.
   const positionMarker = () => {
     const w = slider.clientWidth;
     const h = slider.clientHeight;
-    const boxLeft = edgeX(halfSpan - 0.5, w);
-    const boxWidth = edgeX(halfSpan + 0.5, w) - boxLeft;
-    const boxHeight = boxWidth / config.aspect;
-    marker.style.left = `${boxLeft}px`;
-    marker.style.top = `${h - boxHeight}px`;
-    marker.style.width = `${boxWidth}px`;
-    marker.style.height = `${boxHeight}px`;
+    const left = edgeX(halfSpan - 0.5, w);
+    const width = edgeX(halfSpan + 0.5, w) - left;
+    const height = width / config.aspect;
+    marker.style.left = `${left}px`;
+    marker.style.top = `${h - height}px`;
+    marker.style.width = `${width}px`;
+    marker.style.height = `${height}px`;
   };
   positionMarker();
 
   const onResize = () => {
-    measureInfo();
-    layoutArc(); // font-size is vw-based — rescale the circle's px values
+    projectInfo.relayout();
     positionMarker();
+    wake();
   };
   window.addEventListener("resize", onResize);
 
   const setSlideContent = (slide, index) => {
     if (slide.dataset.index === String(index)) return;
     slide.dataset.index = String(index);
-
     const img = slide.querySelector("img");
-    if (img) {
-      img.src = slideData[index].src;
-      img.alt = slideData[index].alt;
-    }
-    const caption = slide.querySelector("[data-caption]");
-    if (caption) caption.textContent = slideData[index].name;
-  };
-
-  /* Active project = the slide sitting on the screen's horizontal center.
-     The title arc + duration ticker are driven by the same lerped scroll as
-     the slides, so the text moves exactly as fast as the images are dragged. */
-
-  // One rotation turns the whole ring: the name at `pos` lands on the top of
-  // the circle. Scrolling forward rotates clockwise, so the active name
-  // curves off to the right while the next one climbs in from the left.
-  // Per-name we only fade with distance and mark the centred one active.
-  const positionTitles = (pos) => {
-    ring.style.transform = `rotate(${pos * slotAngle}rad)`;
-
-    const active = wrap(Math.round(pos), slideData.length);
-    for (let i = 0; i < titleEls.length; i++) {
-      const el = titleEls[i];
-      const ad = Math.abs(wrapSigned(i - pos, slideData.length));
-      el.style.opacity =
-        ad > config.arcSpan
-          ? "0"
-          : String(Math.max(0, 1 - ad * config.arcFadeFalloff));
-      el.classList.toggle("project-info__title--active", i === active);
-    }
-  };
-
-  const updateActiveInfo = () => {
-    // edgeX(halfSpan) is the screen center. A slide is dead-center when its
-    // middle (stream position + 0.5) sits on halfSpan, so shift by 0.5 — the
-    // arc/ticker then rest exactly on a whole line once snapped.
-    const pos = wrap(halfSpan - scroll - 0.5, slideData.length);
-    durationTrack.style.transform = `translateY(${-pos * durationLineH}px)`;
-    positionTitles(pos);
+    img.src = projects[index].src;
+    img.alt = projects[index].alt;
+    slide.querySelector("[data-caption]").textContent = projects[index].name;
   };
 
   let scroll = 0;
@@ -411,69 +277,64 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
   let running = false;
   let onScreen = false;
 
-  /* ── Loader + load intro ──────────────────────────────────────────────
-     A simple cover with a percent counter sits over the stage until every
-     slide image is cached. Only then does the intro play — the slides rise
-     from below the bottom edge (centre first, wave outward) while the
-     title block fades from 0 to 1 — so it never animates empty boxes. */
+  /* ----- loader + intro ----- */
+
+  // percent cover until all images are cached, then the intro runs
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
-  const easeOutCubic = (x) => 1 - (1 - x) ** 3;
-  let introReady = false; // flips once every slide image has loaded
+  let introReady = false; // all images loaded
   let introStart = 0; // stamped on the first frame after introReady
 
-  const loader = document.createElement("div");
-  loader.className = "loader";
-  const loaderCount = document.createElement("span");
-  loaderCount.className = "loader__count";
-  loaderCount.textContent = "0%";
-  loader.appendChild(loaderCount);
-  slider.appendChild(loader);
+  const loader = el("div", "loader", slider);
+  const counter = el("span", "loader__count", loader);
+  counter.textContent = "0%";
 
-  let loadedImages = 0;
-  const trackImage = (project) =>
+  let loaded = 0;
+  const preload = (src) =>
     new Promise((resolve) => {
       const img = new Image();
       const done = () => {
-        loadedImages++;
-        loaderCount.textContent = `${Math.round((loadedImages / slideData.length) * 100)}%`;
+        loaded++;
+        counter.textContent = `${Math.round((loaded / projects.length) * 100)}%`;
         resolve();
       };
       img.onload = done;
-      img.onerror = done; // a broken image must not hold the intro hostage
-      img.src = project.src;
+      img.onerror = done; // don't let one broken image block the intro
+      img.src = src;
     });
-  Promise.all(slideData.map(trackImage)).then(() => {
+  Promise.all(projects.map((p) => preload(p.src))).then(() => {
     introReady = true;
-    loader.classList.add("loader--done"); // CSS fades the cover away
+    loader.classList.add("loader--done");
     loader.addEventListener("transitionend", () => loader.remove(), {
       once: true,
     });
+    wake();
   });
 
-  // Ease the nearest slide onto the exact screen center once the user lets
-  // go (pointer release / wheel idle) — this also lands the text tickers on
-  // a whole line instead of stopping mid-transition.
+  /* ----- input ----- */
+
+  // ease the nearest slide onto the exact centre once the user lets go
   const snapToCenter = () => {
     scrollTarget = halfSpan - 0.5 - Math.round(halfSpan - scrollTarget - 0.5);
+    wake();
   };
 
   let wheelSnapTimer = 0;
   const onWheel = (e) => {
     e.preventDefault();
-    if (!introReady) return; // input waits for the loader to clear
+    if (!introReady) return;
     scrollTarget += (e.deltaY + e.deltaX) * scrollSpeed * 0.0014;
     clearTimeout(wheelSnapTimer);
     wheelSnapTimer = setTimeout(snapToCenter, 180);
+    wake();
   };
 
   let lastPointerX = null;
   const onPointerDown = (e) => {
-    // Without this the browser starts a native image drag (imgs are
-    // draggable by default), which cancels our pointer events mid-drag.
+    // stop the browser's native image drag, it cancels pointer events
     e.preventDefault();
-    if (!introReady) return; // input waits for the loader to clear
+    if (!introReady) return;
     lastPointerX = e.clientX;
     slider.setPointerCapture(e.pointerId);
   };
@@ -481,6 +342,7 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
     if (lastPointerX === null) return;
     scrollTarget += (lastPointerX - e.clientX) * scrollSpeed * -0.005;
     lastPointerX = e.clientX;
+    wake();
   };
   const releasePointer = () => {
     if (lastPointerX === null) return;
@@ -488,11 +350,10 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
     snapToCenter();
   };
 
-  // Start with a project already centered (and its text line aligned), and
-  // hide the title block so the intro can fade it in from 0.
+  // start with a project centred, title hidden until the intro fades it in
   snapToCenter();
   scroll = scrollTarget;
-  updateActiveInfo();
+  projectInfo.update(wrap(halfSpan - scroll - 0.5, projects.length));
   if (!reduceMotion) info.style.opacity = "0";
 
   slider.addEventListener("wheel", onWheel, { passive: false });
@@ -501,11 +362,12 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
   slider.addEventListener("pointerup", releasePointer);
   slider.addEventListener("pointercancel", releasePointer);
 
+  /* ----- render loop ----- */
+
   const render = (now) => {
+    rafId = 0;
     scroll += (scrollTarget - scroll) * config.lerp;
 
-    // Intro clocks (0→1, then stay 1). The clock only starts once the
-    // loader has cleared (all images cached); until then both stay at 0.
     if (introReady && !introStart) introStart = now;
     const elapsed = introStart ? (now - introStart) / 1000 : 0;
     const tArc = reduceMotion ? 1 : Math.min(elapsed / config.introArcFade, 1);
@@ -513,12 +375,16 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
       ? 1
       : Math.min(elapsed / config.introDuration, 1);
 
-    updateActiveInfo();
+    // idle (loading wait / snap landed): paint once and sleep, wake() resumes
+    const settled =
+      Math.abs(scrollTarget - scroll) < 1e-4 &&
+      ((tArc === 1 && tRise === 1) || !introStart);
+    if (settled) scroll = scrollTarget;
 
-    // Title block (arc + duration) fades in from 0 → 1.
+    // centre slide's middle sits on halfSpan, hence the 0.5 shift
+    projectInfo.update(wrap(halfSpan - scroll - 0.5, projects.length));
+
     info.style.opacity = tArc < 1 ? String(easeOutCubic(tArc)) : "";
-
-    // The centre-slot corner frame fades in with the centre slide's rise.
     marker.style.opacity =
       tRise < 1
         ? String(easeOutCubic(Math.min(tRise / config.introRise, 1)))
@@ -527,17 +393,13 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
     const sliderWidth = slider.clientWidth;
     const sliderHeight = slider.clientHeight;
     const baselineOffset = sliderHeight * config.baseline;
-
-    // The centred slide (biggest, straddling the screen middle) gets the
-    // corner markers — its middle sits on halfSpan.
     const activeStream = Math.round(halfSpan - scroll - 0.5);
 
     for (let i = 0; i < slideCount; i++) {
       const slide = slides[i];
-      if (!slide) continue;
-
       let streamIndex = slideStreamIndex[i];
 
+      // recycle: a slide that left one side re-enters on the other
       while (edgeX(streamIndex + scroll, sliderWidth) > sliderWidth)
         streamIndex -= slideCount;
       while (edgeX(streamIndex + scroll + 1, sliderWidth) < 0)
@@ -549,13 +411,10 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
       const width = right - left;
       const height = width / config.aspect;
 
-      setSlideContent(slide, wrap(streamIndex, slideData.length));
-
+      setSlideContent(slide, wrap(streamIndex, projects.length));
       slide.classList.toggle("slide--active", streamIndex === activeStream);
 
-      // Load intro: each slide rises from below the bottom edge by its own
-      // height. The wave starts at the screen centre and rolls outward —
-      // a slide's start time grows with its distance from the centre.
+      // rise wave: each slide's start grows with distance from the centre
       let introY = 0;
       if (tRise < 1) {
         const fromCenter = Math.min(
@@ -573,19 +432,24 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
       slide.style.transform = `translate(${left}px, ${introY - baselineOffset}px)`;
     }
 
-    if (running) rafId = requestAnimationFrame(render);
+    if (running && !settled) rafId = requestAnimationFrame(render);
   };
 
-  // Only run the render loop while the slider is on screen AND the tab is
-  // visible — an off-screen/background animation just burns CPU+GPU.
+  // hoisted so the handlers above can call it
+  function wake() {
+    if (running && !rafId) rafId = requestAnimationFrame(render);
+  }
+
+  // run only while the slider is on screen and the tab is visible
   const start = () => {
     if (running || !onScreen || document.hidden) return;
     running = true;
-    rafId = requestAnimationFrame(render);
+    wake();
   };
   const stop = () => {
     running = false;
     cancelAnimationFrame(rafId);
+    rafId = 0;
   };
 
   const io = new IntersectionObserver(
@@ -604,7 +468,7 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
   };
   document.addEventListener("visibilitychange", onVisibility);
 
-  // Cleanup for when the breakpoint switches to mobile.
+  // teardown for breakpoint switches
   return () => {
     stop();
     clearTimeout(wheelSnapTimer);
@@ -619,17 +483,13 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
   };
 }
 
-/* ── Breakpoint switch (was React's useState + matchMedia) ────────────
-   Same slider + arc + loader/intro everywhere; crossing the breakpoint
-   rebuilds with the other layout tier's bell curve. */
+/* ----- breakpoint switch ----- */
+
 const mq = window.matchMedia("(min-width: 768px)");
 let cleanup = null;
 
 const build = () => {
-  if (cleanup) {
-    cleanup();
-    cleanup = null;
-  }
+  if (cleanup) cleanup();
   cleanup = renderSlider(mq.matches ? layouts.desktop : layouts.mobile);
 };
 

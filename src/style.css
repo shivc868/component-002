@@ -1,6 +1,5 @@
 @import url("https://fonts.cdnfonts.com/css/pp-neue-montreal");
 
-/* Base reset — the slider draws white text, so the stage is dark. */
 * {
   box-sizing: border-box;
 }
@@ -13,31 +12,25 @@ body {
   font-family: "PP Neue Montreal", system-ui, sans-serif;
 }
 
-/* detroit-paris-slider styles
-   Styles for the Detroit–Paris draggable perspective slider.
-   Class names are semantic (block__element) — no utility framework. */
+/* ----- active project info -----
+   Centred above the slider's bell peak. The title is text bent around a
+   circle (transforms set by main.js), the duration below is a masked
+   vertical ticker. Both follow the slider scroll. */
 
-/* ── Active project info (desktop) ──────────────────────────────────────
-   Centered on the x axis, sitting in the empty space above the slider's
-   bell peak. The title is an arc/fan of names positioned by main.js; the
-   duration is a masked vertical ticker. Both are driven by the slider
-   scroll, so they move at drag speed. */
 .project-info {
   position: absolute;
   top: 18%;
   left: 0;
   width: 100%;
-  z-index: 5000; /* slides use their right edge (px) as z-index */
+  z-index: 5000; /* slides use their right edge px as z-index */
   text-align: center;
   text-transform: uppercase;
-  /* Full width (needed for the arc's edge fade) must not eat the slider's
-     drag events — empty areas pass through; the active title re-enables
-     hits and main.js still swallows pointerdown bubbling from it. */
+  /* full width for the edge fade, but it must not eat drag events;
+     the active title re-enables its own hits */
   pointer-events: none;
 }
 
-/* The mask shows exactly one line (height = 1lh via line-height em trick)
-   and hides the rest of the ticker track. */
+/* shows exactly one ticker line, hides the rest of the track */
 .project-info__mask {
   overflow: hidden;
 }
@@ -51,8 +44,7 @@ body {
   line-height: 1.1;
 }
 
-/* Duration line carries the award chips; fixed height keeps every ticker
-   line identical so the scroll-synced offsets stay exact. */
+/* fixed line height keeps the scroll-synced offsets exact */
 .project-info__mask--duration .project-info__line {
   display: flex;
   align-items: center;
@@ -78,25 +70,23 @@ body {
   white-space: nowrap;
 }
 
-/* ── Title arc ─────────────────────────────────────────────────────────
-   Real text-on-a-circle: every character is a span placed on the rim of a
-   big circle by main.js (rotate + translateY), so the words themselves bend
-   with the curve. Scrolling rotates the whole ring. */
+/* ----- title arc ----- */
+
 .project-info__arc {
   position: relative;
   height: 1em;
   font-weight: 700;
+  /* the font ships nothing above 700, stroke fakes the extra weight */
+  -webkit-text-stroke: 0.02em currentColor;
   font-size: clamp(2.5rem, 6vw, 7rem);
   letter-spacing: -0.02em;
   line-height: 1;
 }
 
-/* Edge blend: fades the arc text into the black stage on both sides — only
-   the text, the slides underneath are untouched. The mask lives on this
-   clipped wrapper (not on the arc itself) so its geometry is exactly the
-   border box: masking the arc directly breaks in Chromium, which maps the
-   mask onto the composited ring layer's overflow bounds instead. 6em is
-   enough to contain how far the side names dip down the circle. */
+/* Fades the names into the background toward both screen edges. The mask
+   sits on this clipped wrapper instead of the arc itself: Chromium maps a
+   mask on the arc onto the composited ring layer's overflow bounds, which
+   breaks the gradient placement. 6em covers how far the side names dip. */
 .project-info__arc-mask {
   position: absolute;
   top: 0;
@@ -120,8 +110,8 @@ body {
   );
 }
 
-/* 0×0 point at the circle's centre (main.js sets `top` to the radius, so
-   the rim's top touches the arc's top edge). Rotating it spins all names. */
+/* 0x0 point at the circle centre; main.js sets top to the radius so the
+   rim touches the arc's top edge. Rotating it turns all names at once. */
 .project-info__ring {
   position: absolute;
   left: 50%;
@@ -131,9 +121,8 @@ body {
   will-change: transform;
 }
 
-/* Each name is a project link — a 0-size group at the ring origin; its char
-   spans carry the actual circle transforms. Only the centred (active) name
-   is clickable so the faded neighbours don't steal the pointer. */
+/* each name is a link, a 0-size group at the ring origin; its char spans
+   carry the circle transforms. Only the centred name takes the pointer. */
 .project-info__title {
   position: absolute;
   top: 0;
@@ -149,18 +138,16 @@ body {
   pointer-events: auto;
 }
 
-/* Chars start at the ring origin; main.js rotates each onto the rim.
-   transform-origin 0 0 keeps the rotation centred on the circle. */
 .project-info__char {
   position: absolute;
   top: 0;
   left: 0;
   display: block;
-  transform-origin: 0 0;
+  transform-origin: 0 0; /* rotate around the circle centre */
 }
 
-/* Measuring mode (buildArc): lay the chars out in normal inline flow so
-   their widths/positions can be read, transforms off. */
+/* measure mode: chars back in normal inline flow so buildArc can read
+   their widths, transforms off */
 .project-info__ring--measure {
   transform: none !important;
 }
@@ -178,10 +165,8 @@ body {
   transform: none !important;
 }
 
-/* One continuous underline for the whole name: an SVG arc following the
-   circle (main.js writes the path in ring coordinates). On hover of the
-   active name it strokes in from the left via the dash-offset trick —
-   pathLength is normalised to 1, so offset 1 = hidden, 0 = fully drawn. */
+/* hover underline: svg arc under the whole name, path set by main.js.
+   pathLength is 1, so dashoffset 1 = hidden and 0 = fully drawn. */
 .project-info__underline {
   position: absolute;
   top: 0;
@@ -205,14 +190,14 @@ body {
   stroke-dashoffset: 0;
 }
 
-/* ── Loader ──────────────────────────────────────────────────────────────
-   Covers the slider until every slide image is cached, so the load intro
-   never animates empty boxes. main.js updates the percent counter and adds
-   .loader--done, which fades the cover away (removed on transitionend). */
+/* ----- loader -----
+   Covers the stage until every slide image is cached. main.js updates the
+   counter and adds .loader--done, which fades the cover away. */
+
 .loader {
   position: absolute;
   inset: 0;
-  z-index: 6000; /* above the info block (5000) and centre marker (4000) */
+  z-index: 6000; /* above the info block and the centre marker */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -244,7 +229,8 @@ body {
   }
 }
 
-/* ── Perspective slider (all breakpoints) ───────────────────────────── */
+/* ----- slider ----- */
+
 .slider {
   position: relative;
   width: 100%;
@@ -263,11 +249,11 @@ body {
   position: absolute;
   bottom: 0;
   left: 0;
-  overflow: visible; /* let the caption show above the image */
+  overflow: visible; /* caption sits above the image */
   will-change: transform, width, height;
 }
 
-/* Media wrapper clips the hover zoom to the image frame. */
+/* clips the hover zoom to the image frame */
 .slide__media {
   width: 100%;
   height: 100%;
@@ -278,19 +264,16 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  z-index: 20;
   object-fit: cover;
   transition: transform 500ms ease-in-out;
-  -webkit-user-drag: none; /* belt & braces with draggable="false" */
+  -webkit-user-drag: none;
 }
 
-/* Hover zoom on every slide except the centred/active one. */
 .slide:not(.slide--active):hover .slide__image {
   transform: scale(1.02);
 }
 
-/* Project name sits just above the image; slides up + fades in on hover of
-   any slide except the centred/active one. */
+/* project name above the image, revealed on hover of non-active slides */
 .slide__caption {
   position: absolute;
   bottom: 100%;
@@ -298,7 +281,9 @@ body {
   padding: 0 0.75rem 0.5rem;
   opacity: 0;
   transform: translateY(1rem);
-  transition: all 300ms ease-in-out;
+  transition:
+    opacity 300ms ease-in-out,
+    transform 300ms ease-in-out;
   pointer-events: none;
 }
 
@@ -314,12 +299,10 @@ body {
   white-space: nowrap;
 }
 
-/* Static corner frame marking the centred slot — small right-angle brackets
-   on the top two corners. It stays fixed while images scroll through it;
-   main.js sizes/places it (.center-marker) to the exact-centre slide box. */
+/* corner brackets over the centre slot, sized/placed by main.js */
 .center-marker {
   position: absolute;
-  z-index: 4000; /* above every slide (slides z-index by right edge px) */
+  z-index: 4000;
   pointer-events: none;
 }
 
@@ -342,4 +325,3 @@ body {
   right: -10px;
   border-right: 2px solid #ffffff37;
 }
-
