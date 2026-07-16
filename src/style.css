@@ -4,11 +4,22 @@
   box-sizing: border-box;
 }
 
+/* Palette pulled from the slide imagery: deep warm blacks, champagne
+   ivory for type, amber gold for accents. */
+:root {
+  --bg: #0c0805; /* warm near-black, like the image shadows */
+  --ink: #f6eddd; /* champagne ivory, main type */
+  --ink-soft: rgba(233, 205, 160, 0.65); /* muted gold, secondary type */
+  --gold: #d9a05b; /* amber gold accent */
+  --gold-bright: #edc17e; /* highlight gold, hover/underline */
+  --gold-line: rgba(217, 160, 91, 0.4); /* gold hairlines/borders */
+}
+
 html,
 body {
   margin: 0;
-  background: #0a0a0a;
-  color: #fff;
+  background: var(--bg);
+  color: var(--ink);
   font-family: "PP Neue Montreal", system-ui, sans-serif;
 }
 
@@ -38,7 +49,7 @@ body {
 .project-info__mask--duration {
   height: 1.1em;
   margin-top: 0.5rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--ink-soft);
   font-size: clamp(0.875rem, 1vw, 1.25rem);
   letter-spacing: 0.08em;
   line-height: 1.1;
@@ -55,9 +66,9 @@ body {
 
 .project-info__award {
   padding: 0.05em 0.6em;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--gold-line);
   border-radius: 9999px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--gold);
   font-size: 0.7em;
   letter-spacing: 0.08em;
 }
@@ -179,7 +190,7 @@ body {
 
 .project-info__underline path {
   fill: none;
-  stroke: #fff;
+  stroke: var(--gold-bright);
   stroke-width: 0.045em;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
@@ -201,7 +212,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0a0a;
+  background: var(--bg);
   transition: opacity 500ms ease-out;
 }
 
@@ -211,7 +222,7 @@ body {
 }
 
 .loader__count {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--ink-soft);
   font-size: 0.875rem;
   letter-spacing: 0.08em;
   animation: loader-pulse 1.2s ease-in-out infinite;
@@ -294,7 +305,7 @@ body {
 
 .slide__caption-text {
   margin: 0;
-  color: #fff;
+  color: var(--ink);
   font-size: 1rem;
   white-space: nowrap;
 }
@@ -313,15 +324,15 @@ body {
   top: -10px;
   width: 20px;
   height: 20px;
-  border-top: 1px solid #ffffff37;
+  border-top: 1px solid var(--gold-line);
 }
 
 .center-marker::before {
   left: -10px;
-  border-left: 2px solid #ffffff37;
+  border-left: 2px solid var(--gold-line);
 }
 
 .center-marker::after {
   right: -10px;
-  border-right: 2px solid #ffffff37;
+  border-right: 2px solid var(--gold-line);
 }
