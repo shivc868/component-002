@@ -14,6 +14,8 @@ const rows = [
   ["Cartography", "2024", ["WOTD"]],
   ["Stillness", "2024 — 2025", ["SOTM", "DEV"]],
   ["Atlas", "2025", ["SOTD"]],
+  ["Aurum", "2025", ["SOTD"]],
+  ["Poise", "2025 — 2026", ["HM"]],
 ];
 
 const projects = rows.map(([name, duration, awards], i) => ({
@@ -31,6 +33,8 @@ const config = {
   lerp: 0.075, // scroll easing, lower = floatier
   aspect: 9 / 14, // slide width : height, smaller = taller
   baseline: 0, // lifts slides off the bottom edge (fraction of height)
+  shadeMax: 0.92, // focus shade at the screen edges (0 = off, 1 = black)
+  shadeCurve: 1.35, // >1 keeps slides near the centre clearer for longer
 
   // title arc
   arcGap: 1, // em between neighbouring names on the circle
@@ -222,6 +226,7 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
 
   const slides = Array.from(slider.querySelectorAll(".slide"));
   const slideStreamIndex = slides.map((_, i) => i);
+  const slideShades = slides.map((s) => s.querySelector(".slide__shade"));
 
   const info = slider.querySelector(".project-info");
   const projectInfo = createProjectInfo(info);
@@ -413,6 +418,16 @@ function renderSlider({ minSize, growth, scrollSpeed }) {
 
       setSlideContent(slide, wrap(streamIndex, projects.length));
       slide.classList.toggle("slide--active", streamIndex === activeStream);
+
+      // focus shade: clear at the centre, darkening toward both edges
+      const shadeDist = Math.min(
+        Math.abs(streamIndex + scroll + 0.5 - halfSpan) / halfSpan,
+        1,
+      );
+      slideShades[i].style.opacity = (
+        config.shadeMax *
+        shadeDist ** config.shadeCurve
+      ).toFixed(3);
 
       // rise wave: each slide's start grows with distance from the centre
       let introY = 0;

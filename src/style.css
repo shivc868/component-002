@@ -266,9 +266,20 @@ body {
 
 /* clips the hover zoom to the image frame */
 .slide__media {
+  position: relative; /* anchors the focus shade */
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+/* focus shade: darkens slides by distance from the centre; opacity is
+   driven per-frame by main.js (0 at the centre, shadeMax at the edges) */
+.slide__shade {
+  position: absolute;
+  inset: 0;
+  background: #060302; /* a touch deeper than --bg so edges melt away */
+  pointer-events: none;
+  will-change: opacity;
 }
 
 .slide__image {
