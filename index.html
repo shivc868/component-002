@@ -5,32 +5,42 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>component-002</title>
+    <!-- demo-page styles only; the component itself never touches
+         html/body, so it can't clash with a host site's own CSS -->
+    <style>
+      body {
+        margin: 0;
+        background: #0e0e0e;
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="mfa-root"></div>
 
     <!-- Static markup lives here as templates; main.js clones them into
-         #app and fills the dynamic bits (image src/alt, captions). -->
+         #mfa-root and fills the dynamic bits (image src/alt, captions).
+         Everything is namespaced mfa- so it can't collide with the host
+         page's classes, ids or GSAP selectors. -->
 
     <!-- active project info: title arc + duration ticker -->
-    <template id="tpl-project-info">
-      <div class="project-info">
-        <div data-arc class="project-info__arc"></div>
-        <div class="project-info__mask project-info__mask--duration">
-          <div data-duration-track class="project-info__track"></div>
+    <template id="tpl-mfa-project-info">
+      <div class="mfa-project-info">
+        <div data-arc class="mfa-project-info__arc"></div>
+        <div class="mfa-project-info__mask mfa-project-info__mask--duration">
+          <div data-duration-track class="mfa-project-info__track"></div>
         </div>
       </div>
     </template>
 
     <!-- one slide, repeated by main.js -->
-    <template id="tpl-slide">
-      <div class="slide">
-        <div class="slide__caption">
-          <p data-caption class="slide__caption-text"></p>
+    <template id="tpl-mfa-slide">
+      <div class="mfa-slide">
+        <div class="mfa-slide__caption">
+          <p data-caption class="mfa-slide__caption-text"></p>
         </div>
-        <div class="slide__media">
-          <img alt="" class="slide__image" draggable="false" />
-          <div class="slide__shade" aria-hidden="true"></div>
+        <div class="mfa-slide__media">
+          <img alt="" class="mfa-slide__image" draggable="false" />
+          <div class="mfa-slide__shade" aria-hidden="true"></div>
         </div>
       </div>
     </template>

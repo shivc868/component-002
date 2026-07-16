@@ -1,26 +1,32 @@
 @import url("https://fonts.cdnfonts.com/css/pp-neue-montreal");
 
-* {
+/* Everything is scoped under .mfa-slider so the component can drop into
+   any page without touching (or being touched by) the host's CSS. No
+   global resets, no :root variables, no generic class names. */
+
+.mfa-slider,
+.mfa-slider *,
+.mfa-slider *::before,
+.mfa-slider *::after {
   box-sizing: border-box;
 }
 
 /* Noir + Acid: charcoal blacks and off-white type for the monochrome
    photography, one electric chartreuse accent to cut through it. */
-:root {
-  --bg: #0e0e0e; /* charcoal near-black */
-  --ink: #f2f2ec; /* off-white, main type */
-  --ink-soft: rgba(242, 242, 236, 0.55); /* muted gray, secondary type */
-  --accent: #d4ff3f; /* electric chartreuse */
-  --accent-bright: #e2ff70; /* lifted accent, hover/underline */
-  --accent-line: rgba(212, 255, 63, 0.45); /* accent hairlines/borders */
-}
+.mfa-slider {
+  --mfa-bg: #0e0e0e; /* charcoal near-black */
+  --mfa-ink: #f2f2ec; /* off-white, main type */
+  --mfa-ink-soft: rgba(242, 242, 236, 0.55); /* muted gray, secondary type */
+  --mfa-accent: #d4ff3f; /* electric chartreuse */
+  --mfa-accent-bright: #e2ff70; /* lifted accent, hover/underline */
+  --mfa-accent-line: rgba(212, 255, 63, 0.45); /* accent hairlines/borders */
 
-html,
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--mfa-bg);
+  color: var(--mfa-ink);
   font-family: "PP Neue Montreal", system-ui, sans-serif;
+  /* internal z-indexes (up to 7000) stay inside this stacking context,
+     they can never fight the host page's headers/modals */
+  isolation: isolate;
 }
 
 /* ----- active project info -----
@@ -28,7 +34,7 @@ body {
    circle (transforms set by main.js), the duration below is a masked
    vertical ticker. Both follow the slider scroll. */
 
-.project-info {
+.mfa-project-info {
   position: absolute;
   top: 18%;
   left: 0;
@@ -42,21 +48,21 @@ body {
 }
 
 /* shows exactly one ticker line, hides the rest of the track */
-.project-info__mask {
+.mfa-project-info__mask {
   overflow: hidden;
 }
 
-.project-info__mask--duration {
+.mfa-project-info__mask--duration {
   height: 1.1em;
   margin-top: 0.5rem;
-  color: var(--ink-soft);
+  color: var(--mfa-ink-soft);
   font-size: clamp(0.875rem, 1vw, 1.25rem);
   letter-spacing: 0.08em;
   line-height: 1.1;
 }
 
 /* fixed line height keeps the scroll-synced offsets exact */
-.project-info__mask--duration .project-info__line {
+.mfa-project-info__mask--duration .mfa-project-info__line {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,26 +70,26 @@ body {
   height: 1.1em;
 }
 
-.project-info__tag {
+.mfa-project-info__tag {
   padding: 0.05em 0.6em;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--mfa-accent-line);
   border-radius: 9999px;
-  color: var(--accent);
+  color: var(--mfa-accent);
   font-size: 0.7em;
   letter-spacing: 0.08em;
 }
 
-.project-info__track {
+.mfa-project-info__track {
   will-change: transform;
 }
 
-.project-info__line {
+.mfa-project-info__line {
   white-space: nowrap;
 }
 
 /* ----- title arc ----- */
 
-.project-info__arc {
+.mfa-project-info__arc {
   position: relative;
   height: 1em;
   font-weight: 700;
@@ -98,7 +104,7 @@ body {
    sits on this clipped wrapper instead of the arc itself: Chromium maps a
    mask on the arc onto the composited ring layer's overflow bounds, which
    breaks the gradient placement. 6em covers how far the side names dip. */
-.project-info__arc-mask {
+.mfa-project-info__arc-mask {
   position: absolute;
   top: 0;
   left: 0;
@@ -123,7 +129,7 @@ body {
 
 /* 0x0 point at the circle centre; main.js sets top to the radius so the
    rim touches the arc's top edge. Rotating it turns all names at once. */
-.project-info__ring {
+.mfa-project-info__ring {
   position: absolute;
   left: 50%;
   top: 0;
@@ -134,7 +140,7 @@ body {
 
 /* each name is a link, a 0-size group at the ring origin; its char spans
    carry the circle transforms. Only the centred name takes the pointer. */
-.project-info__title {
+.mfa-project-info__title {
   position: absolute;
   top: 0;
   left: 0;
@@ -145,11 +151,11 @@ body {
   will-change: opacity;
 }
 
-.project-info__title--active {
+.mfa-project-info__title--active {
   pointer-events: auto;
 }
 
-.project-info__char {
+.mfa-project-info__char {
   position: absolute;
   top: 0;
   left: 0;
@@ -159,18 +165,18 @@ body {
 
 /* measure mode: chars back in normal inline flow so buildArc can read
    their widths, transforms off */
-.project-info__ring--measure {
+.mfa-project-info__ring--measure {
   transform: none !important;
 }
 
-.project-info__ring--measure .project-info__title {
+.mfa-project-info__ring--measure .mfa-project-info__title {
   position: static;
   display: block;
   width: max-content;
   white-space: nowrap;
 }
 
-.project-info__ring--measure .project-info__char {
+.mfa-project-info__ring--measure .mfa-project-info__char {
   position: static;
   display: inline-block;
   transform: none !important;
@@ -178,7 +184,7 @@ body {
 
 /* hover underline: svg arc under the whole name, path set by main.js.
    pathLength is 1, so dashoffset 1 = hidden and 0 = fully drawn. */
-.project-info__underline {
+.mfa-project-info__underline {
   position: absolute;
   top: 0;
   left: 0;
@@ -188,61 +194,61 @@ body {
   pointer-events: none;
 }
 
-.project-info__underline path {
+.mfa-project-info__underline path {
   fill: none;
-  stroke: var(--accent-bright);
+  stroke: var(--mfa-accent-bright);
   stroke-width: 0.045em;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   transition: stroke-dashoffset 350ms ease-in-out;
 }
 
-.project-info__title--active:hover .project-info__underline path {
+.mfa-project-info__title--active:hover .mfa-project-info__underline path {
   stroke-dashoffset: 0;
 }
 
 /* ----- loader -----
    Covers the stage until every slide image is cached. main.js updates the
-   counter and adds .loader--done, which fades the cover away. */
+   counter and adds .mfa-loader--done, which fades the cover away. */
 
-.loader {
+.mfa-loader {
   position: absolute;
   inset: 0;
   z-index: 6000; /* above the info block and the centre marker */
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: var(--mfa-bg);
   transition: opacity 500ms ease-out;
 }
 
-.loader--done {
+.mfa-loader--done {
   opacity: 0;
   pointer-events: none;
 }
 
-.loader__count {
-  color: var(--ink-soft);
+.mfa-loader__count {
+  color: var(--mfa-ink-soft);
   font-size: 0.875rem;
   letter-spacing: 0.08em;
-  animation: loader-pulse 1.2s ease-in-out infinite;
+  animation: mfa-loader-pulse 1.2s ease-in-out infinite;
 }
 
-@keyframes loader-pulse {
+@keyframes mfa-loader-pulse {
   50% {
     opacity: 0.35;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loader__count {
+  .mfa-loader__count {
     animation: none;
   }
 }
 
 /* ----- slider ----- */
 
-.slider {
+.mfa-slider {
   position: relative;
   width: 100%;
   height: 100svh;
@@ -252,13 +258,13 @@ body {
   user-select: none;
 }
 
-.slider:active {
+.mfa-slider:active {
   cursor: grabbing;
 }
 
 /* film grain: SVG noise tiled over the whole stage, jittered in steps
    like projected film. Oversized so the jumps never expose an edge. */
-.slider::after {
+.mfa-slider::after {
   content: "";
   position: absolute;
   inset: -100%;
@@ -266,10 +272,10 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
   opacity: 0.16;
   pointer-events: none;
-  animation: grain 0.7s steps(8) infinite;
+  animation: mfa-grain 0.7s steps(8) infinite;
 }
 
-@keyframes grain {
+@keyframes mfa-grain {
   0%,
   100% {
     transform: translate(0, 0);
@@ -298,12 +304,12 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .slider::after {
+  .mfa-slider::after {
     animation: none;
   }
 }
 
-.slide {
+.mfa-slide {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -312,7 +318,7 @@ body {
 }
 
 /* clips the hover zoom to the image frame */
-.slide__media {
+.mfa-slide__media {
   position: relative; /* anchors the focus shade */
   width: 100%;
   height: 100%;
@@ -321,7 +327,7 @@ body {
 
 /* focus shade: darkens slides by distance from the centre; opacity is
    driven per-frame by main.js (0 at the centre, shadeMax at the edges) */
-.slide__shade {
+.mfa-slide__shade {
   position: absolute;
   inset: 0;
   background: #080808; /* a touch deeper than --bg so edges melt away */
@@ -329,7 +335,7 @@ body {
   will-change: opacity;
 }
 
-.slide__image {
+.mfa-slide__image {
   display: block;
   width: 100%;
   height: 100%;
@@ -338,12 +344,12 @@ body {
   -webkit-user-drag: none;
 }
 
-.slide:not(.slide--active):hover .slide__image {
+.mfa-slide:not(.mfa-slide--active):hover .mfa-slide__image {
   transform: scale(1.02);
 }
 
 /* project name above the image, revealed on hover of non-active slides */
-.slide__caption {
+.mfa-slide__caption {
   position: absolute;
   bottom: 100%;
   left: 0;
@@ -356,41 +362,41 @@ body {
   pointer-events: none;
 }
 
-.slide:not(.slide--active):hover .slide__caption {
+.mfa-slide:not(.mfa-slide--active):hover .mfa-slide__caption {
   opacity: 1;
   transform: translateY(0);
 }
 
-.slide__caption-text {
+.mfa-slide__caption-text {
   margin: 0;
-  color: var(--ink);
+  color: var(--mfa-ink);
   font-size: 1rem;
   white-space: nowrap;
 }
 
 /* corner brackets over the centre slot, sized/placed by main.js */
-.center-marker {
+.mfa-center-marker {
   position: absolute;
   z-index: 4000;
   pointer-events: none;
 }
 
-.center-marker::before,
-.center-marker::after {
+.mfa-center-marker::before,
+.mfa-center-marker::after {
   content: "";
   position: absolute;
   top: -10px;
   width: 20px;
   height: 20px;
-  border-top: 1px solid var(--accent-line);
+  border-top: 1px solid var(--mfa-accent-line);
 }
 
-.center-marker::before {
+.mfa-center-marker::before {
   left: -10px;
-  border-left: 2px solid var(--accent-line);
+  border-left: 2px solid var(--mfa-accent-line);
 }
 
-.center-marker::after {
+.mfa-center-marker::after {
   right: -10px;
-  border-right: 2px solid var(--accent-line);
+  border-right: 2px solid var(--mfa-accent-line);
 }
