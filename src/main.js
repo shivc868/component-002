@@ -3,28 +3,29 @@ import "./style.css";
 // Project slider: slides ride an exponential bell curve, the curved title
 // rotates on a circle in sync. Vanilla JS + rAF, no libraries.
 
+// photo series: [name, years, [camera, lens]] — gear renders as pills
 const rows = [
-  ["Detroit", "2021 — 2022", ["SOTD", "DEV"]],
-  ["Paris", "2022", ["HM"]],
-  ["Monolith", "2022 — 2023", ["WOTD"]],
-  ["Halo", "2023", ["HM"]],
-  ["Vessel", "2023", ["SOTD"]],
-  ["Verdure", "2023 — 2024", ["SOTM"]],
-  ["Drapery", "2024", ["SOTD", "HM"]],
-  ["Cartography", "2024", ["WOTD"]],
-  ["Stillness", "2024 — 2025", ["SOTM", "DEV"]],
-  ["Atlas", "2025", ["SOTD"]],
-  ["Aurum", "2025", ["SOTD"]],
-  ["Poise", "2025 — 2026", ["HM"]],
+  ["Portraits", "2021 — 2022", ["SONY A7 IV", "85MM F1.4"]],
+  ["After Dark", "2022", ["SONY A7S III", "24MM F1.4"]],
+  ["Structures", "2022 — 2023", ["NIKON Z8", "14MM F2.8"]],
+  ["On Film", "2023", ["LEICA M6", "35MM F2"]],
+  ["Wanderlust", "2023", ["FUJI X100V", "23MM F2"]],
+  ["Open Water", "2023 — 2024", ["SONY A1", "70-200MM"]],
+  ["Monsoon", "2024", ["RICOH GR III", "28MM F2.8"]],
+  ["Up Close", "2024", ["CANON R5", "100MM MACRO"]],
+  ["Night Sky", "2024 — 2025", ["NIKON Z6 II", "20MM F1.8"]],
+  ["Geometry", "2025", ["FUJI GFX 100S", "110MM F2"]],
+  ["Summits", "2025", ["SONY A7R V", "16-35MM"]],
+  ["In Motion", "2025 — 2026", ["LEICA Q2", "28MM F1.7"]],
 ];
 
-const projects = rows.map(([name, duration, awards], i) => ({
+const projects = rows.map(([name, duration, tags], i) => ({
   name,
   duration,
-  awards,
+  tags,
   link: "#",
   src: `/assets/slide-img-${i + 1}.jpg`,
-  alt: `${name} project cover`,
+  alt: `${name} photo series cover`,
 }));
 
 /* ----- tuning ----- */
@@ -121,8 +122,8 @@ function createProjectInfo(info) {
   for (const project of [...projects, projects[0]]) {
     const line = el("div", "project-info__line", track);
     el("span", null, line).textContent = project.duration;
-    for (const award of project.awards)
-      el("span", "project-info__award", line).textContent = award;
+    for (const tag of project.tags)
+      el("span", "project-info__tag", line).textContent = tag;
   }
 
   const slot = (Math.PI * 2) / projects.length;

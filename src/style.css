@@ -4,15 +4,15 @@
   box-sizing: border-box;
 }
 
-/* Palette pulled from the slide imagery: deep warm blacks, champagne
-   ivory for type, amber gold for accents. */
+/* Noir + Acid: charcoal blacks and off-white type for the monochrome
+   photography, one electric chartreuse accent to cut through it. */
 :root {
-  --bg: #0c0805; /* warm near-black, like the image shadows */
-  --ink: #f6eddd; /* champagne ivory, main type */
-  --ink-soft: rgba(233, 205, 160, 0.65); /* muted gold, secondary type */
-  --gold: #d9a05b; /* amber gold accent */
-  --gold-bright: #edc17e; /* highlight gold, hover/underline */
-  --gold-line: rgba(217, 160, 91, 0.4); /* gold hairlines/borders */
+  --bg: #0e0e0e; /* charcoal near-black */
+  --ink: #f2f2ec; /* off-white, main type */
+  --ink-soft: rgba(242, 242, 236, 0.55); /* muted gray, secondary type */
+  --accent: #d4ff3f; /* electric chartreuse */
+  --accent-bright: #e2ff70; /* lifted accent, hover/underline */
+  --accent-line: rgba(212, 255, 63, 0.45); /* accent hairlines/borders */
 }
 
 html,
@@ -64,11 +64,11 @@ body {
   height: 1.1em;
 }
 
-.project-info__award {
+.project-info__tag {
   padding: 0.05em 0.6em;
-  border: 1px solid var(--gold-line);
+  border: 1px solid var(--accent-line);
   border-radius: 9999px;
-  color: var(--gold);
+  color: var(--accent);
   font-size: 0.7em;
   letter-spacing: 0.08em;
 }
@@ -190,7 +190,7 @@ body {
 
 .project-info__underline path {
   fill: none;
-  stroke: var(--gold-bright);
+  stroke: var(--accent-bright);
   stroke-width: 0.045em;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
@@ -277,7 +277,7 @@ body {
 .slide__shade {
   position: absolute;
   inset: 0;
-  background: #060302; /* a touch deeper than --bg so edges melt away */
+  background: #080808; /* a touch deeper than --bg so edges melt away */
   pointer-events: none;
   will-change: opacity;
 }
@@ -335,15 +335,15 @@ body {
   top: -10px;
   width: 20px;
   height: 20px;
-  border-top: 1px solid var(--gold-line);
+  border-top: 1px solid var(--accent-line);
 }
 
 .center-marker::before {
   left: -10px;
-  border-left: 2px solid var(--gold-line);
+  border-left: 2px solid var(--accent-line);
 }
 
 .center-marker::after {
   right: -10px;
-  border-right: 2px solid var(--gold-line);
+  border-right: 2px solid var(--accent-line);
 }
