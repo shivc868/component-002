@@ -78,8 +78,9 @@ import "./style.css";
 
   const easeOutCubic = (x) => 1 - (1 - x) ** 3;
 
+  // markup prototypes live in a hidden div in the page, cloned per instance
   const cloneTemplate = (id) =>
-    document.getElementById(id).content.cloneNode(true);
+    document.getElementById(id).firstElementChild.cloneNode(true);
 
   const SVG_NS = "http://www.w3.org/2000/svg";
 

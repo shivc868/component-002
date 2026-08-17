@@ -17,23 +17,17 @@
   <body>
     <div id="mfa-root"></div>
 
-    <!-- Static markup lives here as templates; main.js clones them into
-         #mfa-root and fills the dynamic bits (image src/alt, captions).
-         Everything is namespaced mfa- so it can't collide with the host
-         page's classes, ids or GSAP selectors. -->
-
-    <!-- active project info: title arc + duration ticker -->
-    <template id="tpl-mfa-project-info">
+    <div id="tpl-mfa-project-info" hidden>
       <div class="mfa-project-info">
         <div data-arc class="mfa-project-info__arc"></div>
         <div class="mfa-project-info__mask mfa-project-info__mask--duration">
           <div data-duration-track class="mfa-project-info__track"></div>
         </div>
       </div>
-    </template>
+    </div>
 
     <!-- one slide, repeated by main.js -->
-    <template id="tpl-mfa-slide">
+    <div id="tpl-mfa-slide" hidden>
       <div class="mfa-slide">
         <div class="mfa-slide__caption">
           <p data-caption class="mfa-slide__caption-text"></p>
@@ -43,7 +37,7 @@
           <div class="mfa-slide__shade" aria-hidden="true"></div>
         </div>
       </div>
-    </template>
+    </div>
 
     <script type="module" src="/src/main.js"></script>
   </body>
